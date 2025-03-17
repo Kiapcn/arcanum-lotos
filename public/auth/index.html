@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentification - Arcanum Lotos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        
+        .auth-bg {
+            background: linear-gradient(45deg, #000000, #1a1a1a);
+            animation: gradientBG 15s ease infinite;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="auth-bg text-white min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md p-8 bg-black/50 backdrop-blur-sm rounded-lg shadow-2xl">
+        <h1 class="font-cinzel text-3xl mb-8 text-center text-purple-500">Authentification</h1>
+        
+        <form id="auth-form" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium mb-2" for="username">Identifiant</label>
+                <input type="text" id="username" name="username" required
+                    class="w-full px-4 py-2 bg-black/30 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 text-white">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-2" for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" required
+                    class="w-full px-4 py-2 bg-black/30 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-500 text-white">
+            </div>
+            
+            <button type="submit" 
+                class="w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-cinzel text-lg transition-all duration-300 transform hover:scale-105">
+                Entrer
+            </button>
+        </form>
+        
+        <div id="error-message" class="mt-4 text-red-500 text-center hidden"></div>
+    </div>
+
+    <script>
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/auth.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/dashboard';
+                } else {
+                    throw new Error('Authentification échouée');
+                }
+            } catch (error) {
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = error.message;
+                errorMessage.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

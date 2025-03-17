@@ -1,1 +1,62 @@
-<!DOCTYPE html><html><head><title>Arcanum Lotos</title></head><body><h1>Arcanum Lotos</h1><a href="/auth">Entrer</a></body></html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcanum Lotos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        
+        body {
+            background: linear-gradient(45deg, #000000, #1a1a1a);
+            min-height: 100vh;
+        }
+        
+        .title-animation {
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeInDown 1.5s ease forwards;
+        }
+        
+        @keyframes fadeInDown {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .button-animation {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1.5s ease forwards 0.5s;
+        }
+        
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen flex items-center justify-center">
+    <div class="text-center">
+        <h1 class="font-cinzel text-6xl mb-8 text-purple-500 title-animation">Arcanum Lotos</h1>
+        <div class="space-y-4 button-animation">
+            <a href="/auth" class="inline-block px-8 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-cinzel text-xl transition-all duration-300 transform hover:scale-105">
+                Entrer dans OTO
+            </a>
+        </div>
+    </div>
+</body>
+</html>
