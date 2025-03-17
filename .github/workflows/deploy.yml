@@ -14,9 +14,10 @@ jobs:
       - name: Sync files
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: 147.93.93.62
+          server: ftp.arcanum-lotos.fr
           username: u163021014
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           server-dir: /public_html/
           local-dir: ./public/
+          dangerous-clean-slate: true
