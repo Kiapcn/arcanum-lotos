@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: Get latest code
         uses: actions/checkout@v3
+
       - name: Sync files
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
@@ -19,5 +20,15 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           server-dir: /public_html/
-          local-dir: ./public/
+          local-dir: ./
           dangerous-clean-slate: true
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.env
+            **/.env.*
+            **/.github/**
+            **/README.md
+            **/package.json
+            **/package-lock.json
