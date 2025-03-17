@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>oToV1 - Outils SaaS Automatisés</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'paper': {
+                            'light': '#f5f5dc',
+                            'medium': '#e8e8d0',
+                            'dark': '#d1d1c4',
+                        },
+                        'pencil': {
+                            'light': '#e0e0e0',
+                            'medium': '#b0b0b0',
+                            'dark': '#808080',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/css">
+        .paper-texture {
+            background-color: #f5f5dc;
+            background-image: 
+                linear-gradient(45deg, #f5f5dc 25%, transparent 25%),
+                linear-gradient(-45deg, #f5f5dc 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #f5f5dc 75%),
+                linear-gradient(-45deg, transparent 75%, #f5f5dc 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        .pencil-effect {
+            font-family: 'Courier New', monospace;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+        .section-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+        }
+
+        /* Styles pour le mode debug */
+        .debug-mode * {
+            outline: 1px dashed rgba(0,0,0,0.1);
+        }
+        
+        .debug-tooltip {
+            position: fixed;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 9999;
+            max-width: 300px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .debug-highlight {
+            background: rgba(255, 255, 0, 0.2) !important;
+            outline: 2px solid rgba(255, 165, 0, 0.5) !important;
+        }
+
+        #debug-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 9999;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        #debug-toggle:hover {
+            background: rgba(0,0,0,0.9);
+        }
+
+        /* Styles pour l'arborescence */
+        .tree-view {
+            font-family: monospace;
+            font-size: 14px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 4px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .tree-item {
+            padding: 2px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .tree-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .tree-icon {
+            width: 20px;
+            text-align: center;
+            margin-right: 5px;
+        }
+
+        /* Console de logs */
+        .console-view {
+            font-family: monospace;
+            font-size: 14px;
+            background: #1e1e1e;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            height: 150px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 2px 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .log-info { color: #4CAF50; }
+        .log-warning { color: #FFC107; }
+        .log-error { color: #F44336; }
+    </style>
+</head>
+<body class="paper-texture min-h-screen flex flex-col">
+    <button id="debug-toggle" onclick="toggleDebugMode()" class="fixed top-4 right-4 z-50 px-4 py-2 bg-black/80 text-white rounded-lg hover:bg-black/90">🔍 Mode Debug</button>
+
+    <!-- En-tête -->
+    <header id="header-section" class="py-4 border-b border-pencil-light bg-white/50">
+        <h1 class="text-4xl font-bold text-center pencil-effect">oToV1</h1>
+    </header>
+
+    <!-- Contenu principal -->
+    <div id="main-container" class="flex flex-1 min-h-[calc(100vh-4rem)]">
+        <!-- Barre latérale gauche avec arborescence -->
+        <aside id="sidebar-section" class="w-64 border-r border-pencil-light bg-white/50 flex flex-col">
+            <!-- Navigation -->
+            <nav id="main-nav" class="p-4 border-b border-pencil-light">
+                <a href="#" class="block p-2 hover:bg-paper-medium rounded-lg transition-colors">Accueil</a>
+                <a href="#" class="block p-2 hover:bg-paper-medium rounded-lg transition-colors">Création Vidéo</a>
+                <a href="#" class="block p-2 hover:bg-paper-medium rounded-lg transition-colors">Autres Outils</a>
+            </nav>
+            
+            <!-- Vue arborescente -->
+            <div class="flex-1 p-4 overflow-auto">
+                <h3 class="text-sm font-bold mb-2">Structure du projet</h3>
+                <div id="tree-view" class="tree-view">
+                    <!-- L'arborescence sera générée en JavaScript -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Zone principale -->
+        <main id="content-section" class="flex-1 p-8 flex flex-col">
+            <div id="content-container" class="max-w-2xl mx-auto w-full">
+                <!-- Zone de bienvenue -->
+                <div id="welcome-section" class="section-card mb-4">
+                    <h2 class="text-2xl font-semibold mb-4 pencil-effect">Bienvenue sur oToV1</h2>
+                    <p class="text-pencil-dark">Choisissez un outil dans le menu de gauche pour commencer.</p>
+                </div>
+
+                <!-- Zone de réponse -->
+                <div id="response-section" class="section-card mb-4 min-h-[100px]">
+                    <p id="response-text" class="text-pencil-dark"></p>
+                </div>
+
+                <!-- Barre de prompt -->
+                <div id="prompt-section" class="section-card">
+                    <form id="prompt-form" class="flex gap-2">
+                        <input 
+                            type="text" 
+                            id="prompt-input" 
+                            class="flex-1 p-2 border border-pencil-light rounded-lg focus:outline-none focus:ring-2 focus:ring-pencil-medium"
+                            placeholder="Écrivez votre message ici..."
+                        >
+                        <button 
+                            type="submit" 
+                            class="px-4 py-2 bg-pencil-medium text-white rounded-lg hover:bg-pencil-dark transition-colors"
+                        >
+                            Envoyer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Console de logs -->
+    <div id="console-section" class="fixed bottom-0 left-0 right-0 bg-black/90 text-white">
+        <div class="flex justify-between items-center px-4 py-2 bg-black/80 border-b border-white/10">
+            <span class="text-sm font-bold">Console</span>
+            <button onclick="clearLogs()" class="text-xs px-2 py-1 bg-white/10 rounded hover:bg-white/20">Clear</button>
+        </div>
+        <div id="console-view" class="console-view">
+            <!-- Les logs seront ajoutés ici -->
+        </div>
+    </div>
+
+    <script>
+        // Structure du projet pour l'arborescence
+        const projectStructure = {
+            'frontend/': {
+                'public/': {
+                    'index.html': null,
+                    'style.css': null
+                },
+                'src/': {
+                    'components/': {
+                        'Header.js': null,
+                        'Sidebar.js': null,
+                        'Main.js': null
+                    },
+                    'utils/': {
+                        'api.js': null,
+                        'helpers.js': null
+                    }
+                },
+                'package.json': null
+            }
+        };
+
+        // Fonction pour générer l'arborescence
+        function generateTreeView(structure, parentElement, level = 0) {
+            for (const [key, value] of Object.entries(structure)) {
+                const item = document.createElement('div');
+                item.className = 'tree-item';
+                item.style.paddingLeft = `${level * 20}px`;
+
+                const icon = document.createElement('span');
+                icon.className = 'tree-icon';
+                icon.innerHTML = value === null ? '<i class="fas fa-file"></i>' : '<i class="fas fa-folder"></i>';
+
+                const text = document.createElement('span');
+                text.textContent = key;
+
+                item.appendChild(icon);
+                item.appendChild(text);
+                parentElement.appendChild(item);
+
+                if (value !== null) {
+                    generateTreeView(value, parentElement, level + 1);
+                }
+            }
+        }
+
+        // Système de logs
+        const consoleView = document.getElementById('console-view');
+        
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleView.appendChild(entry);
+            consoleView.scrollTop = consoleView.scrollHeight;
+        }
+
+        function clearLogs() {
+            consoleView.innerHTML = '';
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Générer l'arborescence
+            const treeView = document.getElementById('tree-view');
+            generateTreeView(projectStructure, treeView);
+
+            // Exemple de logs
+            log('Application initialisée', 'info');
+            log('Chargement des composants...', 'info');
+            log('Tous les composants sont chargés', 'info');
+        });
+
+        // Gestion du formulaire
+        document.getElementById('prompt-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('prompt-input');
+            const responseText = document.getElementById('response-text');
+            
+            // Afficher la réponse
+            responseText.textContent = "Bonjour";
+            log(`Prompt envoyé : ${input.value}`, 'info');
+            
+            // Vider l'input
+            input.value = '';
+        });
+
+        // Animation d'entrée
+        gsap.from("h1", { 
+            opacity: 0, 
+            y: -20, 
+            duration: 1,
+            ease: "power2.out" 
+        });
+        
+        gsap.from("aside", {
+            opacity: 0,
+            x: -50,
+            duration: 1,
+            delay: 0.3,
+            ease: "power2.out"
+        });
+
+        // Mode Debug
+        let debugMode = false;
+        let tooltip = null;
+
+        function createTooltip() {
+            tooltip = document.createElement('div');
+            tooltip.className = 'debug-tooltip';
+            document.body.appendChild(tooltip);
+        }
+
+        function toggleDebugMode() {
+            debugMode = !debugMode;
+            document.body.classList.toggle('debug-mode');
+            
+            if (debugMode && !tooltip) {
+                createTooltip();
+            }
+            
+            if (!debugMode && tooltip) {
+                tooltip.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('mousemove', function(e) {
+            if (!debugMode || !tooltip) return;
+            
+            tooltip.style.left = (e.pageX + 15) + 'px';
+            tooltip.style.top = (e.pageY + 15) + 'px';
+        });
+
+        document.addEventListener('mouseover', function(e) {
+            if (!debugMode || !tooltip) return;
+
+            const target = e.target;
+            if (target === document.body || target === tooltip) return;
+
+            // Retirer la surbrillance précédente
+            const highlighted = document.querySelector('.debug-highlight');
+            if (highlighted) highlighted.classList.remove('debug-highlight');
+
+            // Ajouter la surbrillance
+            target.classList.add('debug-highlight');
+
+            // Construire l'info-bulle
+            let info = [];
+            if (target.id) info.push(`ID: ${target.id}`);
+            if (target.className) info.push(`Classes: ${target.className.split(' ').join(', ')}`);
+            info.push(`Element: ${target.tagName.toLowerCase()}`);
+
+            tooltip.textContent = info.join('\n');
+            tooltip.style.display = 'block';
+        });
+
+        document.addEventListener('mouseout', function(e) {
+            if (!debugMode || !tooltip) return;
+
+            const target = e.target;
+            if (target === document.body || target === tooltip) return;
+
+            target.classList.remove('debug-highlight');
+            tooltip.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
